@@ -1,4 +1,5 @@
 //Requires NodeJS.
+//Required Modules: fs(built-in), readline-sync, probe-image-size, events(built-in)
 //Ported from pure JS to NodeJS.
 
 //run this if you will create bigger tile map:
@@ -443,13 +444,14 @@ var TILEMAP_GENERATOR = {
             }
             
             var t = 0;
-            var loop = true;
+            var generatedTileCount = 0;
+            var totalTileCount = map_width * map_height;
 
-            while(loop)
+            while(true)
             {
-                if(!TILEMAP_GENERATOR.isThereEmptyTile(tile_data, map_width, map_height))
+                if(generatedTileCount >= totalTileCount)
                     break;
-                
+
                 ///////////////////////////
                 var base_points = TILEMAP_GENERATOR.parsePoints(biome_points[t], map_width, map_height);
                 var tileId      = tile_data[base_points.y][base_points.x];
@@ -460,11 +462,10 @@ var TILEMAP_GENERATOR = {
                     {
                         var nearestTile = TILEMAP_GENERATOR.findNearestTile(x, y, biome_points);
                         tile_data[y][x] = nearestTile.tile.tileId;
+                        generatedTileCount++;
                     }
                 }
-
                 ///////////////////////////
-                break; //debug
                 t = ++t % biome_points.length;
             }
             
