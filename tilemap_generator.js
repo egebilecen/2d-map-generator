@@ -343,20 +343,6 @@ var TILEMAP_GENERATOR = {
 
         return points;
     },
-    isThereEmptyTile : function(tile_data, width, height){
-        for(var y=0; y < height; y++)
-        {
-            for(var x=0; x < width; x++)
-            {
-                var tile = tile_data[y][x];
-
-                if(tile === 0)
-                    return {x:x, y:y};
-            }
-        }
-
-        return false;
-    },
     findNearestTile : function(x, y, biome_points){
         var temp = {tile:null, dist:0};
         for(var i=0; i < biome_points.length; i++)
@@ -500,16 +486,25 @@ var TILEMAP_GENERATOR = {
             //create xml view
             var xml_view = xml_map;
             xml_view = xml_view.replace("$tileset_xml", TILEMAP_GENERATOR.info.tileset.xml_text)
-                                .replace("$layer_xml", xml_layer);
+                               .replace("$layer_xml", xml_layer);
 
             var saveFileName = "tg_map_data.tmx";
-            fs.writeFile(saveFileName, xml_view, (err) => {
-                if(err)
-                {
-                    console.log("[!] - An error occured while saving tile map data into \""+saveFileName+"\".");
-                }
+            var wStream = fs.createWriteStream(saveFileName);
+            wStream.on("finish", function(){
                 console.log("[?] - Created tile map data saved into \""+saveFileName+"\".");
+                //ask for re-generate
+                if(readline.keyInYN("[?] - Want to re-generate map?"))
+                {
+                    TILEMAP_GENERATOR.drawStyle.plain(draw_style, map_width, map_height, layer_name, 
+                        TILEMAP_GENERATOR.generateRandomPoint(biome_points.length, map_width, map_height)
+                    );
+                }
             });
+            wStream.on("error", function(){
+                console.log("[!] - An error occured while saving tile map data into \""+saveFileName+"\".");
+            });
+            wStream.write(xml_view,"utf8");
+            wStream.end();
         }
     }
 };
