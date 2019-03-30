@@ -100,10 +100,12 @@ var TILEMAP_GENERATOR = {
     findTileId : function(tile, firstGid){
         var tileset = TILEMAP_GENERATOR.findTilesetFromName(tile.tileset);
 
-        var row     = tileset.img.height / TILEMAP_GENERATOR.info.tile.height;
-        var col     = tileset.img.width  / TILEMAP_GENERATOR.info.tile.width;
+        var tileW = tile.position.x / TILEMAP_GENERATOR.info.tile.width;
+        var tileH = tile.position.y / TILEMAP_GENERATOR.info.tile.height;
 
-        var tileId  = tile.position.x + (tile.position.y * col) + firstGid;
+        var magic = tileset.img.width / TILEMAP_GENERATOR.info.tile.width * tileH;
+
+        var tileId  = tileW + magic + firstGid;
 
         return tileId;
     },
