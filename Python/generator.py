@@ -108,9 +108,9 @@ class TileGenerator:
         elif len(self.CONFIG_DATA["tiles"]) < 1:
             print("Error: Couldn't find any tile in config file.")
             return
-        elif self.MAP["biomeCount"] < len(self.CONFIG_DATA["tiles"]):
-            print("Error: Biome point count must be at least total tiles' count.")
-            return
+        # elif self.MAP["biomeCount"] < len(self.CONFIG_DATA["tiles"]):
+        #     print("Error: Biome point count must be at least total tiles' count.")
+        #     return
 
         # Load tileset properties
         self.loadTilesetProperties()
@@ -222,7 +222,7 @@ class TileGenerator:
                 nearestBasePoint = self.findNearestBasePoint(x, y, basePoints)
                 
                 # Update tile map
-                self.TILE_MAP[y][x] = nearestBasePoint["tileId"]
+                self.TILE_MAP[y][x] = nearestBasePoint["tileGid"]
 
         self.isMapGenerated = True
 
@@ -327,14 +327,14 @@ class TileGenerator:
 
             basePoint = self.HelperFunctions.parsePoints(self.MAP["biomePoints"][i], self.MAP["width"], self.MAP["height"])
             tileset   = self.findTilesetFromName(tile["tileset"])
-            tileId    = self.findTileId(tile, tileset["firstGid"])
+            tileGid   = self.findTileGid(tile, tileset["firstGid"])
 
             biomeData = {
                 "position" : basePoint, # tuple(x, y)
-                "tileId"   : tileId     # int
+                "tileGid"  : tileGid     # int
             }
 
-            self.TILE_MAP[biomeData["position"][1]][biomeData["position"][0]] = biomeData["tileId"]
+            self.TILE_MAP[biomeData["position"][1]][biomeData["position"][0]] = biomeData["tileGid"]
 
             biomePoints.append(biomeData)
         
@@ -350,19 +350,22 @@ class TileGenerator:
         
         return None
 
-    def findTileId(self, tile, firstGid):
+    def findTileGid(self, tile, firstGid):
         tileset = self.findTilesetFromName(tile["tileset"])
 
-        col     = tileset["imgProperties"]["width"] / self.TILE["width"]
+        tileW = tile["position"]["x"] / self.TILE["width"]
+        tileH = tile["position"]["y"] / self.TILE["height"]
 
-        tileID  = int(tile["position"]["x"] + (tile["position"]["y"] * col) + firstGid)
+        magic = tileset["imgProperties"]["width"]  / self.TILE["width"] * tileH
 
-        return tileID
+        tileGid  = int(tileW + firstGid + magic)
+
+        return tileGid
 
     def findNearestBasePoint(self, x, y, basePoints):
         temp = {
-            "tileId" : 0, # int
-            "dist"   : 0  # int
+            "tileGid" : 0, # int
+            "dist"    : 0  # int
         }
 
         for i in range(0, len(basePoints)):
@@ -371,9 +374,9 @@ class TileGenerator:
             
             dist = self.HelperFunctions.distanceBetweenTwoCoords(currentPoint, basePointObj["position"])
 
-            if i == 0: temp = { "tileId" : basePointObj["tileId"], "dist" : dist }
+            if i == 0: temp = { "tileGid" : basePointObj["tileGid"], "dist" : dist }
             else:
                 if temp["dist"] < dist:
-                    temp = { "tileId" : basePointObj["tileId"], "dist" : dist }
+                    temp = { "tileGid" : basePointObj["tileGid"], "dist" : dist }
 
         return temp
